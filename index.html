@@ -1,0 +1,94 @@
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="description" content="Sample illustrating the use of Image Capture / Update Camera Zoom.">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Image Capture / Update Camera Zoom Sample</title>
+  <link rel="icon" href="../images/favicon.ico">
+  <link rel="stylesheet" href="../styles/main.css">
+  <link rel="stylesheet" href="update-camera-zoom.css">
+</head>
+
+<body>
+  <h1>Image Capture / Update Camera Zoom Sample</h1>
+
+  <h3>Background</h3>
+  <p>The ImageCapture Web API allows web developers to change the zoom setting of
+    the camera.</p>
+
+  <video autoplay></video>
+  <input type="range">
+
+  <script>
+    var ChromeSamples = {
+      log: function () {
+        var line = Array.prototype.slice.call(arguments).map(function (argument) {
+          return typeof argument === 'string' ? argument : JSON.stringify(argument);
+        }).join(' ');
+
+        document.querySelector('#log').textContent += line + '\n';
+      },
+
+      clearLog: function () {
+        document.querySelector('#log').textContent = '';
+      },
+
+      setStatus: function (status) {
+        document.querySelector('#status').textContent = status;
+      },
+
+      setContent: function (newContent) {
+        var content = document.querySelector('#content');
+        while (content.hasChildNodes()) {
+          content.removeChild(content.lastChild);
+        }
+        content.appendChild(newContent);
+      }
+    };
+  </script>
+
+  <h3>Live Output</h3>
+  <div id="output" class="output">
+    <div id="content"></div>
+    <div id="status"></div>
+    <pre id="log"></pre>
+  </div>
+
+
+
+  <script>navigator.mediaDevices.getUserMedia({ video: { zoom: true } })
+      .then(mediaStream => {
+        document.querySelector('video').srcObject = mediaStream;
+
+        const [track] = mediaStream.getVideoTracks();
+        console.log('[track]', [track]);
+        const capabilities = track.getCapabilities();
+        console.log('capabilities', capabilities);
+        const settings = track.getSettings();
+        console.log('settings', settings);
+
+        const input = document.querySelector('input[type="range"]');
+
+        // Check whether zoom is supported or not.
+        if (!('zoom' in settings)) {
+          return Promise.reject('Zoom is not supported by ' + track.label);
+        }
+
+        // Map zoom to a slider element.
+        input.min = capabilities.zoom.min;
+        input.max = capabilities.zoom.max;
+        input.step = capabilities.zoom.step;
+        input.value = settings.zoom;
+        input.oninput = function (event) {
+          track.applyConstraints({ advanced: [{ zoom: event.target.value }] });
+        }
+        input.hidden = false;
+      })
+      .catch(error => ChromeSamples.log('Argh!', error.name || error));
+  </script>
+</body>
+
+</html>
