@@ -84,6 +84,7 @@
         input.value = settings.zoom;
         input.oninput = function (event) {
           track.applyConstraints({ advanced: [{ zoom: event.target.value }] });
+          console.log('settings', settings);
         }
         input.hidden = false;
       })
